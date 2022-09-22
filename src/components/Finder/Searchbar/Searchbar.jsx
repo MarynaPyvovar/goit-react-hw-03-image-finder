@@ -1,5 +1,9 @@
 import React, { Component } from "react";
-import css from "../Searchbar/Searchbar.module.css"
+import PropTypes from "prop-types";
+import { FaSearch } from 'react-icons/fa';
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+import css from "../Searchbar/Searchbar.module.css";
 
 export default class Searchbar extends Component {
     state = {
@@ -12,21 +16,42 @@ export default class Searchbar extends Component {
         })
     }
 
+    handleSubmit = (event) => {
+        event.preventDefault();
+        const { searchInput } = this.state;
+        
+        if (searchInput.trim() === '') {
+            return toast("Enter your search query :)");
+        }
+        this.props.onSubmit(searchInput.trim())
+        this.setState({
+            searchInput: '',
+        });
+    }
+
     render() {
-        return <header class={css.header}>
-            <form className={css.searchForm}>
+        const { searchInput } = this.state;
+        return <><header class={css.header}>
+            <form className={css.searchForm} onSubmit={this.handleSubmit}>
                 <button type="submit" className={css.searchFormButton}>
-                    <span className={css.searchFormButtonLabel}>Search</span>
+                    <FaSearch />
                 </button>
                 <input
                     onChange={this.handleChange}
                     className={css.searchFormInput}
                     type="text"
+                    name='searchInput'
+                    value={searchInput}
                     autoComplete="off"
                     autoFocus
                     placeholder="Search images and photos"
                 />
             </form>
         </header>
+        <ToastContainer autoClose={1000}/></>
     }
+}
+
+Searchbar.propTypes = {
+    onSubmit: PropTypes.func.isRequired,
 }
