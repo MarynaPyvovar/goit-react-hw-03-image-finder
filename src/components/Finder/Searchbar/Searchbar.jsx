@@ -48,7 +48,7 @@ export default class Searchbar extends Component {
                 />
             </form>
         </header>
-        <ToastContainer autoClose={1000}/></>
+        </>
     }
 }
 

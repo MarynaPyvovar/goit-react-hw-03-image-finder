@@ -1,29 +1,31 @@
 import React, { Component } from "react";
+import { ToastContainer, toast } from 'react-toastify';
+import { searchImages } from '../../shared/api/images';
+
 import Searchbar from "./Searchbar/Searchbar";
 import {ImageGallery} from "./ImageGallery/ImageGallery";
 import {Button} from "./Button/Button";
 import {Loader} from "./Loader/Loader";
 import { Modal } from "./Modal/Modal";
 
-import { searchImages } from '../../shared/api/images';
-
 export default class Finder extends Component {
     state = {
         items: [],
         searchInput: '',
-        modal: false,
-        dataModal: {},
         loading: false,
         error: null,
         page: 1,
+        loadMore: false,
+        modal: false,
+        dataModal: {},
     }
 
     handleFormSubmit = input => {
         this.setState({
+            items: [],
             searchInput: input,
+            page: 1,
         });
-
-        // this.fetchImages()
     }
 
     onModalOpen = (id) => {
@@ -33,6 +35,16 @@ export default class Finder extends Component {
             modal: true,
             dataModal: imageToOpen,
         })
+        document.addEventListener('click', this.onModalClose)
+        document.addEventListener('keydown', this.onModalClose)
+    }
+
+    onModalClose = (e) => {
+        if (e.currentTarget === e.target || e.code === 'Escape') {
+            this.setState({modal: false,})
+            document.removeEventListener('click', this.onModalClose)
+            document.removeEventListener('keydown', this.onModalClose)
+        }
     }
 
     onLoadMoreClick = () => {
@@ -41,53 +53,55 @@ export default class Finder extends Component {
                 page: page + 1
             }
         })
-        this.fetchImages()
     }
 
-//     componentDidUpdate(_, prevState) {
-//     const { page } = this.state;
-//     if (prevState.page !== page) {
-//         this.fetchImages();
-//     }
-//   }
+    componentDidUpdate(_, prevState) {
+        if (prevState.searchInput !== this.state.searchInput || prevState.page !== this.state.page) {
+            this.fetchImages();
+        }
+    }
 
-    async fetchImages() {
-    const { searchInput, page } = this.state;
-    this.setState({
-        loading: true,
-    });
+    fetchImages = async () => {
+        const { searchInput, page } = this.state;
+        this.setState({loading: true});
 
-    try {
-        const data = await searchImages(searchInput, page);
-        console.log(data.hits)
-        this.setState(({items}) => {
-            return {
-                items: [...items, ...data.hits]
+        try {
+            const data = await searchImages(searchInput, page);
+            if (data.hits.length === 0) {
+                return toast(`Sorry, we hadn't found images for "${searchInput}", please, enter another query :)`)
             }
-        })
-    } catch (error) {
-        this.setState({
-            error
-        })
-    }
-    finally {
-        this.setState({
-            loading: false
-        })
-    }
-    }
+            
+            this.setState(({items}) => {
+                return {
+                    items: [...items, ...data.hits],
+                    loadMore: true,
+                }
+            })
 
-    
+            if (data.hits.length < 12) {
+                this.setState({loadMore: false})
+            }
+        } catch (error) {
+            this.setState({error})
+        }
+        finally {
+            this.setState({loading: false})
+        }
+    }
 
     render() {
-        const { items, modal, loading, dataModal } = this.state;
+        const { items, modal, loading, loadMore, dataModal, error } = this.state;
+        const { handleFormSubmit, onModalOpen, onLoadMoreClick, onModalClose } = this;
         const isData = Boolean(items.length);
+        
         return <>
-            <Searchbar onSubmit={this.handleFormSubmit} />
-            {isData && <ImageGallery modalOpen={this.onModalOpen} data={items} />}
-            <Button onClick={this.onLoadMoreClick} />
+            <Searchbar onSubmit={handleFormSubmit} />
+            {error && <p>Oops! Something went wrong :( Please, reload page and try again</p>}
+            {isData && <ImageGallery modalOpen={onModalOpen} data={items} />}
+            {loadMore && <Button onClick={onLoadMoreClick} />}
             {loading && <Loader />}
-            {modal && <Modal data={dataModal} />}
+            {modal && <Modal data={dataModal} onClose={onModalClose} />}
+            <ToastContainer autoClose={2000}/>
         </>
     }
 }
