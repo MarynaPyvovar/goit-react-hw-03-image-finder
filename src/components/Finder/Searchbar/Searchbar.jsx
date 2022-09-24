@@ -24,9 +24,6 @@ export default class Searchbar extends Component {
             return toast("Enter your search query :)");
         }
         this.props.onSubmit(searchInput.trim())
-        this.setState({
-            searchInput: '',
-        });
     }
 
     render() {

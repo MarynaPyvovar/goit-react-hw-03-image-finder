@@ -11,6 +11,7 @@ export const ImageGalleryItem = ({modalOpen, data}) => {
 ImageGalleryItem.propTypes = {
     modalOpen: PropTypes.func.isRequired,
     data: PropTypes.shape({
+        id: PropTypes.number.isRequired,
         webformatURL: PropTypes.string.isRequired,
         tags: PropTypes.string.isRequired,
     }),

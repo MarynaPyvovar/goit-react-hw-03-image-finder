@@ -15,17 +15,10 @@ export default class Finder extends Component {
         loading: false,
         error: null,
         page: 1,
+        totalQuantity: 0,
         loadMore: false,
         modal: false,
         dataModal: {},
-    }
-
-    handleFormSubmit = input => {
-        this.setState({
-            items: [],
-            searchInput: input,
-            page: 1,
-        });
     }
 
     onModalOpen = (id) => {
@@ -61,26 +54,43 @@ export default class Finder extends Component {
         }
     }
 
+    handleFormSubmit = input => {
+        if (input !== this.state.searchInput) {
+            this.setState({
+                items: [],
+                searchInput: input,
+                page: 1,
+                totalQuantity: 0,
+                loadMore: false
+        });
+        }
+    }
+
     fetchImages = async () => {
-        const { searchInput, page } = this.state;
+        const { searchInput, page, totalQuantity } = this.state;
         this.setState({loading: true});
 
         try {
             const data = await searchImages(searchInput, page);
-            if (data.hits.length === 0) {
+            
+            if (data.totalHits === 0) {
                 return toast(`Sorry, we hadn't found images for "${searchInput}", please, enter another query :)`)
             }
-            
+
+            const newTotalCount = totalQuantity + 12;
             this.setState(({items}) => {
                 return {
                     items: [...items, ...data.hits],
-                    loadMore: true,
+                    totalQuantity: newTotalCount,
                 }
             })
-
-            if (data.hits.length < 12) {
+            
+            if (newTotalCount < data.totalHits) {
+                this.setState({loadMore: true})
+            } else {
                 this.setState({loadMore: false})
             }
+
         } catch (error) {
             this.setState({error})
         }

@@ -12,5 +12,7 @@ export const ImageGallery = ({ modalOpen, data }) =>
     </ul>
 
 ImageGallery.propTypes = {
-    data: PropTypes.arrayOf(PropTypes.object.isRequired),
+    data: PropTypes.arrayOf(PropTypes.shape({
+        id: PropTypes.number.isRequired,
+    })),
 }

@@ -13,5 +13,6 @@ Modal.propTypes = {
     data: PropTypes.shape({
         largeImageURL: PropTypes.string.isRequired,
         tags: PropTypes.string.isRequired,
-    })
+    }),
+    onClose: PropTypes.func.isRequired,
 }
